@@ -1,36 +1,48 @@
 # Django REST Framework serializers for all models
+
 from rest_framework import serializers
 from .models import User, Team, Activity, Workout, Leaderboard
 
+class ObjectIdField(serializers.Field):
+	def to_representation(self, value):
+		return str(value) if value else None
+	def to_internal_value(self, data):
+		return data
+
 class TeamSerializer(serializers.ModelSerializer):
+	id = ObjectIdField(read_only=True)
 	class Meta:
 		model = Team
-		fields = '__all__'
+		fields = ['id', 'name']
 
 class UserSerializer(serializers.ModelSerializer):
-	team = TeamSerializer(read_only=True)
-	team_id = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all(), source='team', write_only=True)
+	id = ObjectIdField(read_only=True)
+	team = ObjectIdField(source='team_id', read_only=True)
+	team_id = ObjectIdField(write_only=True)
 	class Meta:
 		model = User
 		fields = ['id', 'name', 'email', 'team', 'team_id']
 
 class ActivitySerializer(serializers.ModelSerializer):
-	user = UserSerializer(read_only=True)
-	user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user', write_only=True)
+	id = ObjectIdField(read_only=True)
+	user = ObjectIdField(source='user_id', read_only=True)
+	user_id = ObjectIdField(write_only=True)
 	class Meta:
 		model = Activity
 		fields = ['id', 'user', 'user_id', 'type', 'distance', 'duration']
 
 class WorkoutSerializer(serializers.ModelSerializer):
-	user = UserSerializer(read_only=True)
-	user_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), source='user', write_only=True)
+	id = ObjectIdField(read_only=True)
+	user = ObjectIdField(source='user_id', read_only=True)
+	user_id = ObjectIdField(write_only=True)
 	class Meta:
 		model = Workout
 		fields = ['id', 'user', 'user_id', 'workout', 'reps']
 
 class LeaderboardSerializer(serializers.ModelSerializer):
-	team = TeamSerializer(read_only=True)
-	team_id = serializers.PrimaryKeyRelatedField(queryset=Team.objects.all(), source='team', write_only=True)
+	id = ObjectIdField(read_only=True)
+	team = ObjectIdField(source='team_id', read_only=True)
+	team_id = ObjectIdField(write_only=True)
 	class Meta:
 		model = Leaderboard
 		fields = ['id', 'team', 'team_id', 'points']
